@@ -34,6 +34,9 @@ public:
 	Node* merge(Node* left, Node* right);
 	Node* mergeSort(Node* head);
 	void sortByTrackname();
+	Node* mergeByArtist(Node* left, Node* right);
+	Node* mergeSortByArtist(Node* head);
+	void sortByArtistname();
 };
 
 

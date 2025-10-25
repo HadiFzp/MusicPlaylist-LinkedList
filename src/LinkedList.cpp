@@ -1,5 +1,5 @@
 #include "LinkedList.h"
-#include <stdexcept>
+
 
 LinkedList::LinkedList() : head(nullptr), tail(nullptr), size(0) {}
 
@@ -147,6 +147,77 @@ Node* LinkedList::mergeSort(Node* head)
 void LinkedList::sortByTrackname() 
 {
     head = mergeSort(head);
+    Node* current = head;
+    Node* prev = nullptr;
+    while (current != nullptr) {
+        current->prev = prev;
+        prev = current;
+        current = current->next;
+    }
+    tail = prev;
+}
+
+Node* LinkedList::mergeByArtist(Node* left, Node* right)
+{
+    if (left == nullptr)
+    {
+        return right;
+    }
+    if (right == nullptr)
+    {
+        return left;
+    }
+
+    if (left->data.artist_name < right->data.artist_name)
+    {
+        Node* curr = left;
+        curr->next = merge(left->next, right);
+        if (curr->next)
+        {
+            curr->next->prev = curr;
+        }
+        curr->prev = nullptr;
+        return curr;
+    }
+    else
+    {
+        Node* curr = right;
+        curr->next = merge(left, right->next);
+        if (curr->next)
+        {
+            curr->next->prev = curr;
+        }
+        curr->prev = nullptr;
+        return curr;
+    }
+}
+
+Node* LinkedList::mergeSortByArtist(Node* head)
+{
+    if (head == nullptr || head->next == nullptr)
+    {
+        return head;
+    }
+    Node* mid = getMiddle(head);
+    Node* half = mid->next;
+    half->next = nullptr;
+    if (half)
+    {
+        half->prev = nullptr;
+    }
+    Node* left = mergeSortByArtist(head);
+    Node* right = mergeSortByArtist(mid);
+    return mergeByArtist(left, right);
+}
+
+void LinkedList::sortByArtistname()
+{
+    if (head == nullptr || head->next == nullptr) {
+        return; 
+    }
+
+    head = mergeSortByArtist(head);
+
     Node* current = head;
     Node* prev = nullptr;
     while (current != nullptr) {
