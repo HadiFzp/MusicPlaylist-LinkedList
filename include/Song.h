@@ -14,7 +14,7 @@ public:
 	double length;
 
 	Song(const string& artist, const string& track, const string& date,
-		const string& genre, double len, const string& topic)
+		const string& genre, double len, const string& topic);
 
 	void display() const;
 };
