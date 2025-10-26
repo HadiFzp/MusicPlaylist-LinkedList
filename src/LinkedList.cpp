@@ -1,13 +1,12 @@
 #include "LinkedList.h"
 
-
 LinkedList::LinkedList() : head(nullptr), tail(nullptr), size(0) {}
 
 LinkedList::~LinkedList() {
     clear();
 }
 
-void LinkedList::append(const Song& song) 
+void LinkedList::append(const Song& song)
 {
     Node* newNode = new Node(song);
     if (head == nullptr) {
@@ -20,7 +19,7 @@ void LinkedList::append(const Song& song)
     size++;
 }
 
-void LinkedList::remove(const std::string& track_name) 
+void LinkedList::remove(const std::string& track_name)
 {
     Node* current = head;
 
@@ -48,7 +47,7 @@ void LinkedList::remove(const std::string& track_name)
     size--;
 }
 
-bool LinkedList::contains(const Song& song) const 
+bool LinkedList::contains(const Song& song) const
 {
     const Node* current = head;
     while (current != nullptr) {
@@ -72,80 +71,63 @@ void LinkedList::clear()
     size = 0;
 }
 
-int LinkedList::getSize() const 
+int LinkedList::getSize() const
 {
     return size;
 }
 
-Node* LinkedList::getMiddle(Node* head  , Node* tail)
+Node* LinkedList::getMiddle(Node* head)
 {
-    if (!head)
-        return nullptr;
-
-    Node* left = head;
-    Node* right = tail;
-
-    while (left != right && left->next != right) {
-		left = left->next;
-		right = right->prev;
+    if (!head) return nullptr;
+    Node* slow = head;
+    Node* fast = head->next;
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
     }
-
-    return left;
+    return slow;
 }
 
 Node* LinkedList::merge(Node* left, Node* right)
 {
-    if (left == nullptr)
-    {
-        return right;
-    }
-    if (right == nullptr)
-    {
-        return left;
-    }
+    if (left == nullptr) return right;
+    if (right == nullptr) return left;
 
     if (left->data.track_name < right->data.track_name)
     {
         Node* curr = left;
         curr->next = merge(left->next, right);
-        if (curr->next)
-        {
-            curr->next->prev = curr;
-        }
+        if (curr->next) curr->next->prev = curr;
+        curr->prev = nullptr;
         return curr;
     }
     else
     {
         Node* curr = right;
         curr->next = merge(left, right->next);
-        if (curr->next)
-        {
-            curr->next->prev = curr;
-        }
+        if (curr->next) curr->next->prev = curr;
+        curr->prev = nullptr;
         return curr;
     }
 }
 
 Node* LinkedList::mergeSort(Node* head)
 {
-    if (head == nullptr || head->next == nullptr)
-    {
-        return head;
-    }
+    if (head == nullptr || head->next == nullptr) return head;
+
     Node* mid = getMiddle(head);
-    Node* half = mid->next;
-    half->next = nullptr;
-    if (half)
-    {
-        half->prev = nullptr;
-    }
-    Node* left = mergeSort(head);
-    Node* right = mergeSort(mid);
-    return merge(left, right);
+    Node* right = mid->next;
+    mid->next = nullptr;
+    if (right) right->prev = nullptr;
+
+    Node* leftSorted = mergeSort(head);
+    Node* rightSorted = mergeSort(right);
+    return merge(leftSorted, rightSorted);
 }
 
-void LinkedList::sortByTrackname() 
+void LinkedList::sortByTrackname()
 {
+    if (!head || !head->next) return;
     head = mergeSort(head);
     Node* current = head;
     Node* prev = nullptr;
@@ -159,34 +141,22 @@ void LinkedList::sortByTrackname()
 
 Node* LinkedList::mergeByArtist(Node* left, Node* right)
 {
-    if (left == nullptr)
-    {
-        return right;
-    }
-    if (right == nullptr)
-    {
-        return left;
-    }
+    if (left == nullptr) return right;
+    if (right == nullptr) return left;
 
     if (left->data.artist_name < right->data.artist_name)
     {
         Node* curr = left;
-        curr->next = merge(left->next, right);
-        if (curr->next)
-        {
-            curr->next->prev = curr;
-        }
+        curr->next = mergeByArtist(left->next, right);
+        if (curr->next) curr->next->prev = curr;
         curr->prev = nullptr;
         return curr;
     }
     else
     {
         Node* curr = right;
-        curr->next = merge(left, right->next);
-        if (curr->next)
-        {
-            curr->next->prev = curr;
-        }
+        curr->next = mergeByArtist(left, right->next);
+        if (curr->next) curr->next->prev = curr;
         curr->prev = nullptr;
         return curr;
     }
@@ -194,26 +164,22 @@ Node* LinkedList::mergeByArtist(Node* left, Node* right)
 
 Node* LinkedList::mergeSortByArtist(Node* head)
 {
-    if (head == nullptr || head->next == nullptr)
-    {
-        return head;
-    }
+    if (head == nullptr || head->next == nullptr) return head;
+
     Node* mid = getMiddle(head);
-    Node* half = mid->next;
-    half->next = nullptr;
-    if (half)
-    {
-        half->prev = nullptr;
-    }
-    Node* left = mergeSortByArtist(head);
-    Node* right = mergeSortByArtist(mid);
-    return mergeByArtist(left, right);
+    Node* right = mid->next;
+    mid->next = nullptr;
+    if (right) right->prev = nullptr;
+
+    Node* leftSorted = mergeSortByArtist(head);
+    Node* rightSorted = mergeSortByArtist(right);
+    return mergeByArtist(leftSorted, rightSorted);
 }
 
 void LinkedList::sortByArtistname()
 {
     if (head == nullptr || head->next == nullptr) {
-        return; 
+        return;
     }
 
     head = mergeSortByArtist(head);
