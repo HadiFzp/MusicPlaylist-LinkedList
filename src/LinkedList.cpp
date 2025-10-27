@@ -1,4 +1,5 @@
 #include "LinkedList.h"
+#include<Song.h>
 
 
 LinkedList::LinkedList() : head(nullptr), tail(nullptr), size(0) {}
@@ -52,7 +53,8 @@ bool LinkedList::contains(const Song& song) const
 {
     const Node* current = head;
     while (current != nullptr) {
-        if (current->data.track_name == song.track_name) {
+        if (current->data.track_name == song.track_name &&
+            current->data.artist_name == song.artist_name) {
             return true;
         }
         current = current->next;
@@ -77,153 +79,98 @@ int LinkedList::getSize() const
     return size;
 }
 
-Node* LinkedList::getMiddle(Node* head  , Node* tail)
-{
-    if (!head)
-        return nullptr;
+void LinkedList::sort(const CompareFunction& comp) {
+    if (head == nullptr || head == tail) return;
 
-    Node* left = head;
-    Node* right = tail;
+    head = mergeSort(head, tail, comp);
+
+    Node* current = head;
+    Node* prev = nullptr;
+    while (current != nullptr) {
+        current->prev = prev;
+        prev = current;
+        current = current->next;
+    }
+    tail = prev;
+}
+
+Node* LinkedList::mergeSort(Node* start, Node* end, const CompareFunction& comp) {
+    if (start == end) return start;
+
+    Node* mid = getMiddle(start, end);
+    Node* midNext = mid->next;
+
+    mid->next = nullptr;
+    if (midNext) midNext->prev = nullptr;
+
+    Node* left = mergeSort(start, mid, comp);
+    Node* right = mergeSort(midNext, end, comp);
+
+    return merge(left, right, comp);
+}
+
+Node* LinkedList::merge(Node* left, Node* right, const CompareFunction& comp) {
+    if (left == nullptr) return right;
+    if (right == nullptr) return left;
+
+    if (comp(left->data, right->data)) {
+        Node* curr = left;
+        curr->next = merge(left->next, right, comp);
+        if (curr->next) {
+            curr->next->prev = curr;
+        }
+        return curr;
+    }
+    else {
+        Node* curr = right;
+        curr->next = merge(left, right->next, comp);
+        if (curr->next) {
+            curr->next->prev = curr;
+        }
+        return curr;
+    }
+}
+
+Node* LinkedList::getMiddle(Node* start, Node* end) {
+    if (!start) return nullptr;
+
+    Node* left = start;
+    Node* right = end;
 
     while (left != right && left->next != right) {
-		left = left->next;
-		right = right->prev;
+        left = left->next;
+        right = right->prev;
     }
-
     return left;
 }
 
-Node* LinkedList::merge(Node* left, Node* right)
-{
-    if (left == nullptr)
-    {
-        return right;
-    }
-    if (right == nullptr)
-    {
-        return left;
-    }
-
-    if (left->data.track_name < right->data.track_name)
-    {
-        Node* curr = left;
-        curr->next = merge(left->next, right);
-        if (curr->next)
-        {
-            curr->next->prev = curr;
-        }
-        return curr;
-    }
-    else
-    {
-        Node* curr = right;
-        curr->next = merge(left, right->next);
-        if (curr->next)
-        {
-            curr->next->prev = curr;
-        }
-        return curr;
-    }
+void LinkedList::sortByTrackName() {
+    sort([](const Song& a, const Song& b) {
+        return a.track_name < b.track_name;
+        });
 }
 
-Node* LinkedList::mergeSort(Node* head)
-{
-    if (head == nullptr || head->next == nullptr)
-    {
-        return head;
-    }
-    Node* mid = getMiddle(head);
-    Node* half = mid->next;
-    half->next = nullptr;
-    if (half)
-    {
-        half->prev = nullptr;
-    }
-    Node* left = mergeSort(head);
-    Node* right = mergeSort(mid);
-    return merge(left, right);
+void LinkedList::sortByArtistName() {
+    sort([](const Song& a, const Song& b) {
+        return a.artist_name < b.artist_name;
+        });
 }
 
-void LinkedList::sortByTrackname() 
-{
-    head = mergeSort(head);
-    Node* current = head;
-    Node* prev = nullptr;
-    while (current != nullptr) {
-        current->prev = prev;
-        prev = current;
-        current = current->next;
-    }
-    tail = prev;
+void LinkedList::sortByReleaseDate() {
+    sort([](const Song& a, const Song& b) {
+        return a.release_date < b.release_date;
+        });
 }
 
-Node* LinkedList::mergeByArtist(Node* left, Node* right)
-{
-    if (left == nullptr)
-    {
-        return right;
+void LinkedList::sortByDuration(bool ascending) {
+    if (ascending) {
+        sort([](const Song& a, const Song& b) {
+            return a.length < b.length;
+            });
     }
-    if (right == nullptr)
-    {
-        return left;
+    else {
+        sort([](const Song& a, const Song& b) {
+            return a.length > b.length;
+            });
     }
-
-    if (left->data.artist_name < right->data.artist_name)
-    {
-        Node* curr = left;
-        curr->next = merge(left->next, right);
-        if (curr->next)
-        {
-            curr->next->prev = curr;
-        }
-        curr->prev = nullptr;
-        return curr;
-    }
-    else
-    {
-        Node* curr = right;
-        curr->next = merge(left, right->next);
-        if (curr->next)
-        {
-            curr->next->prev = curr;
-        }
-        curr->prev = nullptr;
-        return curr;
-    }
-}
-
-Node* LinkedList::mergeSortByArtist(Node* head)
-{
-    if (head == nullptr || head->next == nullptr)
-    {
-        return head;
-    }
-    Node* mid = getMiddle(head);
-    Node* half = mid->next;
-    half->next = nullptr;
-    if (half)
-    {
-        half->prev = nullptr;
-    }
-    Node* left = mergeSortByArtist(head);
-    Node* right = mergeSortByArtist(mid);
-    return mergeByArtist(left, right);
-}
-
-void LinkedList::sortByArtistname()
-{
-    if (head == nullptr || head->next == nullptr) {
-        return; 
-    }
-
-    head = mergeSortByArtist(head);
-
-    Node* current = head;
-    Node* prev = nullptr;
-    while (current != nullptr) {
-        current->prev = prev;
-        prev = current;
-        current = current->next;
-    }
-    tail = prev;
 }

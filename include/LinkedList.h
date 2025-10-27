@@ -2,7 +2,7 @@
 #define REPOS_LINKEDLIST_H
 
 #include "Song.h"
-#include <iostream>
+#include <functional>
 
 using namespace std;
 
@@ -20,6 +20,14 @@ class LinkedList
 		Node* head;
 		Node* tail;
 		int size;
+		
+		using CompareFunction = std::function<bool(const Song&, const Song&)>;
+
+		Node* getMiddle(Node* start, Node* end);
+		Node* merge(Node* left, Node* right, const CompareFunction& comp);
+		Node* mergeSort(Node* start, Node* end, const CompareFunction& comp);
+
+
 
 public:
 	LinkedList();
@@ -30,13 +38,14 @@ public:
 	bool contains(const Song& song) const;
 	void clear();
 	int getSize() const;
-	Node* getMiddle(Node* head);
-	Node* merge(Node* left, Node* right);
-	Node* mergeSort(Node* head);
-	void sortByTrackname();
-	Node* mergeByArtist(Node* left, Node* right);
-	Node* mergeSortByArtist(Node* head);
-	void sortByArtistname();
+	
+
+	void sort(const CompareFunction& comp);
+	void sortByTrackName();
+	void sortByArtistName();
+	void sortByReleaseDate();
+	void sortByDuration(bool ascending = true);
+
 };
 
 
